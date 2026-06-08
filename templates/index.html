@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1 class="firstheading">Expense Tracker</h1>
+
+      <!--
+        BALANCE SECTION
+        {{ balance }}, {{ income }}, {{ expenses }} are Jinja2 placeholders.
+        Flask fills them in from app.py before sending the page to the browser.
+        e.g.  {{ balance }}  becomes  "PKR 35,000.00"
+      -->
+      <div class="balance-container">
+        <h2>Your Balance</h2>
+        <h1 id="balance">{{ balance }}</h1>
+
+        <div class="summary">
+          <div class="income">
+            <h3>Income</h3>
+            <p id="income-amount">{{ income }}</p>
+          </div>
+          <div class="expenses">
+            <h3>Expenses</h3>
+            <p id="expense-amount">{{ expenses }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content">
+
+        <!-- LEFT: Transaction List -->
+        <div class="transaction-container">
+          <h2>Transactions</h2>
+          <ul id="transaction-list">
+
+            <!--
+              Show a friendly message if there are no transactions yet.
+              "transactions | length" counts how many items are in the list.
+            -->
+            {% if transactions | length == 0 %}
+              <li class="empty-state">No transactions yet. Add one!</li>
+            {% endif %}
+
+            <!--
+              LOOP: Flask goes through every transaction and builds one <li> for each.
+              "t" is the current transaction in the loop.
+              t["description"] and t["amount"] are the values we stored in app.py.
+            -->
+            {% for t in transactions %}
+              <li class="transaction {{ t['css_class'] }}">
+                <span>{{ t["description"] }}</span>
+                <span>
+                  {{ t["amount_text"] }}
+                  <!--
+                    DELETE BUTTON:
+                    Clicking this link goes to /delete/3  (where 3 is the id).
+                    Flask then deletes it and reloads the page. No JavaScript!
+                  -->
+                  <a href="/delete/{{ t['id'] }}" class="delete-btn">&#x2715;</a>
+                </span>
+              </li>
+            {% endfor %}
+
+          </ul>
+        </div>
+
+        <!-- RIGHT: Add Transaction Form -->
+        <div class="form-container">
+          <h2>Add Transaction</h2>
+
+          <!--
+            action="/add"   tells the form WHERE to send the data (our /add route)
+            method="POST"   means we are SENDING data to the server
+          -->
+          <form action="/add" method="POST" id="transaction-form">
+
+            <div class="form-group">
+              <label for="description">Description</label>
+              <!--
+                name="description" is very important!
+                In app.py we read this with:  request.form["description"]
+                The name here must exactly match what we type in app.py.
+              -->
+              <input
+                type="text"
+                id="description"
+                name="description"
+                placeholder="Enter description..."
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="amount">Amount</label>
+              <!--
+                name="amount" must match request.form["amount"] in app.py
+              -->
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                placeholder="Enter amount..."
+                step="any"
+                required
+              />
+              <small>Use negative (-) for expenses</small>
+            </div>
+
+            <button type="submit">Add Transaction</button>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+    <!-- No JavaScript at all! Flask handles everything on the server. -->
+  </body>
+</html>
